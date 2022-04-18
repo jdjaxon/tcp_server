@@ -67,6 +67,26 @@ read_all (int h_fd, void * p_buf, uint64_t count)
 bool
 is_valid_port (char * p_port_str)
 {
+    if (!p_port_str)
+    {
+        return false;
+    }
+
+    errno = 0;
+    char * p_end = NULL;
+    long retval = strtol(p_port_str, &p_end, 10);
+
+    if (p_port_str == p_end ||
+        ((0 == retval) && (0 != errno)) ||
+        (0 != *p_end) ||
+        (retval > PORT_MAX) ||
+        (retval < PORT_MIN))
+    {
+        fprintf(stderr, "%s: invalid port\n", __func__);
+        return false;
+    }
+
+    return true;
 } /* validate_port */
 
 
