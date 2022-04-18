@@ -28,6 +28,62 @@
 int
 start_listener (const char * p_port_str)
 {
+    struct addrinfo   hints  = {0};
+    struct addrinfo * p_res  = NULL;
+    struct addrinfo * p_curr = NULL;
+
+    hints.ai_family   = AF_INET;
+    hints.ai_socktype = SOCK_STREAM;
+
+    if (getaddrinfo(NULL, p_port_str, &hints, &p_res) != 0)
+    {
+        return FAIL;
+    }
+
+    int h_sockfd = 0;
+
+    for (p_curr = p_res; NULL != p_curr; p_curr = p_curr->ai_next)
+    {
+        h_sockfd = socket(p_curr->ai_family, p_curr->ai_socktype,
+                          p_curr->ai_protocol);
+
+        if  (h_sockfd < 0)
+        {
+            perror("socket");
+            continue;
+        }
+
+        int yes = 1;
+        if (setsockopt(h_sockfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)))
+        {
+            perror("setsockopt");
+        }
+
+        if (bind(h_sockfd, p_curr->ai_addr, p_curr->ai_addrlen) < 0)
+        {
+            perror("bind");
+            close(h_sockfd);
+            continue;
+        }
+
+        if (listen(h_sockfd, BACKLOG) < 0)
+        {
+            perror("listen");
+            close(h_sockfd);
+            continue;
+        }
+
+        break;
+    }
+
+    freeaddrinfo(p_res);
+
+    if (!p_curr)
+    {
+        return FAIL;
+    }
+
+    return h_sockfd;
 } /* start_listener */
 
 /**
