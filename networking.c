@@ -56,6 +56,29 @@ write_all (int h_fd, const void * p_buf, uint64_t count)
 bool
 read_all (int h_fd, void * p_buf, uint64_t count)
 {
+    if ((h_fd < 0) || (!p_buf && count > 0))
+    {
+        return false;
+    }
+
+    uint64_t bytes_rx = 0;
+
+    while (bytes_rx < count)
+    {
+        ssize_t retval = read(h_fd, p_buf + bytes_rx, count - bytes_rx);
+
+        if (retval <= 0)
+        {
+            perror("read");
+            break;
+        }
+        else
+        {
+            bytes_rx += retval;
+        }
+    }
+
+    return bytes_rx == count;
 } /* read_all */
 
 /**
