@@ -42,6 +42,29 @@ start_listener (const char * p_port_str)
 bool
 write_all (int h_fd, const void * p_buf, uint64_t count)
 {
+    if ((h_fd < 0) || (!p_buf && count > 0))
+    {
+        return false;
+    }
+
+    uint64_t bytes_sent = 0;
+
+    while (bytes_sent < count)
+    {
+        ssize_t retval = write(h_fd, p_buf + bytes_sent, count - bytes_sent);
+
+        if (retval <= 0)
+        {
+            perror("write");
+            break;
+        }
+        else
+        {
+            bytes_sent += retval;
+        }
+    }
+
+    return bytes_sent == count;
 } /* write_all */
 
 /**
